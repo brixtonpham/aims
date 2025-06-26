@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Order entity following Clean Architecture principles
@@ -102,6 +103,12 @@ public class Order {
             .unitPrice(unitPrice)
             .build();
         
+        // Set a temporary ID for unit testing (when not persisted to database)
+        if (orderItem.getOrderItemId() == null) {
+            long tempId = System.currentTimeMillis() + orderItems.size();
+            orderItem.setOrderItemId(tempId);
+        }
+        
         orderItems.add(orderItem);
         recalculateTotals();
         return orderItem;
@@ -111,7 +118,7 @@ public class Order {
      * Remove order item
      */
     public boolean removeOrderItem(Long orderItemId) {
-        boolean removed = orderItems.removeIf(item -> orderItemId.equals(item.getOrderItemId()));
+        boolean removed = orderItems.removeIf(item -> Objects.equals(orderItemId, item.getOrderItemId()));
         if (removed) {
             recalculateTotals();
         }

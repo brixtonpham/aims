@@ -6,10 +6,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -45,24 +50,34 @@ public class JpaPaymentTransactionRepository implements PaymentTransactionReposi
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
         
-        jdbcTemplate.update(sql,
-            transaction.getOrderId(),
-            transaction.getTransactionNo(),
-            transaction.getAmount(),
-            transaction.getBankCode(),
-            transaction.getResponseCode(),
-            transaction.getTransactionStatus().name(),
-            transaction.getPayDate(),
-            transaction.getPaymentMethod(),
-            transaction.getGatewayTransactionId(),
-            transaction.getGatewayResponseMessage(),
-            transaction.getCurrencyCode()
-        );
+        // Use KeyHolder to get generated keys in a database-agnostic way
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, transaction.getOrderId());
+            ps.setString(2, transaction.getTransactionNo());
+            ps.setLong(3, transaction.getAmount());
+            ps.setString(4, transaction.getBankCode());
+            ps.setString(5, transaction.getResponseCode());
+            ps.setString(6, transaction.getTransactionStatus().name());
+            ps.setString(7, transaction.getPayDate());
+            ps.setString(8, transaction.getPaymentMethod());
+            ps.setString(9, transaction.getGatewayTransactionId());
+            ps.setString(10, transaction.getGatewayResponseMessage());
+            ps.setString(11, transaction.getCurrencyCode());
+            return ps;
+        }, keyHolder);
 
-        // Get the generated ID
-        Long generatedId = jdbcTemplate.queryForObject(
-            "SELECT LASTVAL()", Long.class);
-        transaction.setId(generatedId);
+        // Get the generated ID in a database-agnostic way
+        Map<String, Object> keys = keyHolder.getKeys();
+        if (keys != null && keys.containsKey("ID")) {
+            transaction.setId(((Number) keys.get("ID")).longValue());
+        } else {
+            Number key = keyHolder.getKey();
+            if (key != null) {
+                transaction.setId(key.longValue());
+            }
+        }
         
         return transaction;
     }

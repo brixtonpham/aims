@@ -1,0 +1,271 @@
+# =====================================================
+# AIMS Spring Boot Application Configuration
+# =====================================================
+spring:
+  application:
+    name: AIMS Backend
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: ${DDL_AUTO:validate}
+    show-sql: ${SHOW_SQL:false}
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: ${HIBERNATE_DIALECT:org.hibernate.dialect.PostgreSQLDialect}
+        jdbc:
+          batch_size: 20
+          fetch_size: 50
+
+  # Flyway Migration Configuration
+  flyway:
+    enabled: ${FLYWAY_ENABLED:true}
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: ${CONTEXT_PATH:/}
+
+# Logging Configuration  
+logging:
+  level:
+    com.aims: ${LOG_LEVEL_AIMS:INFO}
+    org.springframework: ${LOG_LEVEL_SPRING:WARN}
+    org.hibernate: ${LOG_LEVEL_HIBERNATE:WARN}
+
+# AIMS Application Configuration
+aims:
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:3000}
+  cache:
+    ttl: ${CACHE_TTL:3600}
+
+---
+
+# application-dev.yml - Development Profile
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  # H2 Database for Local Development
+  datasource:
+    url: jdbc:h2:mem:aimsdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
+
+  # JPA Configuration for Development
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    defer-datasource-initialization: false
+
+  # SQL Initialization
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+      data-locations: classpath:data-dev.sql
+
+# VNPay Development Configuration (Sandbox)
+vnpay:
+  pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  return-url: http://localhost:8080/api/payment/vnpay/return
+  api-url: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
+  tmn-code: ${VNPAY_DEV_TMN_CODE:SANDBOX_TMN}
+  secret-key: ${VNPAY_DEV_SECRET:SANDBOX_SECRET_KEY}
+
+# Development Logging
+logging:
+  level:
+    com.aims: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type: TRACE
+
+---
+
+# application-test.yml - Test Profile  
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  # H2 In-Memory Database for Testing
+  datasource:
+    url: jdbc:h2:mem:aims_test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  # JPA Configuration for Testing
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+
+  # Test Data Initialization
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+      data-locations: classpath:data-test.sql
+
+# Mock VNPay Configuration for Testing
+vnpay:
+  pay-url: http://localhost:8080/mock/vnpay
+  return-url: http://localhost:8080/api/payment/vnpay/return
+  api-url: http://localhost:8080/mock/vnpay/api
+  tmn-code: TEST_TMN_CODE
+  secret-key: TEST_SECRET_KEY
+
+# Test Logging
+logging:
+  level:
+    com.aims: INFO
+    org.springframework.test: INFO
+    org.testcontainers: INFO
+
+---
+
+# application-staging.yml - Staging Profile
+spring:
+  config:
+    activate:
+      on-profile: staging
+
+  # PostgreSQL Database for Staging
+  datasource:
+    url: ${STAGING_DB_URL:jdbc:postgresql://localhost:5432/aims_staging}
+    username: ${STAGING_DB_USERNAME:aims_staging_user}
+    password: ${STAGING_DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+    
+  # Connection Pool Configuration
+  hikari:
+    maximum-pool-size: 10
+    minimum-idle: 5
+    connection-timeout: 30000
+    idle-timeout: 600000
+    max-lifetime: 1800000
+
+  # JPA Configuration for Staging
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+# VNPay Staging Configuration
+vnpay:
+  pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  return-url: ${STAGING_RETURN_URL:https://staging.aims.com/api/payment/vnpay/return}
+  api-url: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
+  tmn-code: ${VNPAY_STAGING_TMN_CODE:}
+  secret-key: ${VNPAY_STAGING_SECRET:}
+
+# Staging Logging
+logging:
+  level:
+    com.aims: INFO
+    org.springframework: WARN
+  file:
+    name: logs/aims-staging.log
+    max-size: 100MB
+    max-history: 30
+
+---
+
+# application-prod.yml - Production Profile
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  # PostgreSQL Database for Production
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  # Production Connection Pool
+  hikari:
+    maximum-pool-size: 20
+    minimum-idle: 5
+    connection-timeout: 30000
+    idle-timeout: 600000
+    max-lifetime: 1800000
+    leak-detection-threshold: 60000
+
+  # JPA Configuration for Production
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+          fetch_size: 100
+
+# VNPay Production Configuration
+vnpay:
+  pay-url: https://vnpayment.vn/paymentv2/vpcpay.html
+  return-url: ${VNPAY_RETURN_URL:https://aims.com/api/payment/vnpay/return}
+  api-url: https://vnpayment.vn/merchant_webapi/api/transaction
+  tmn-code: ${VNPAY_TMN_CODE}
+  secret-key: ${VNPAY_SECRET_KEY}
+
+# Production Logging
+logging:
+  level:
+    com.aims: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
+  file:
+    name: logs/aims-prod.log
+    max-size: 500MB
+    max-history: 90
+  pattern:
+    file: "%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n"
+
+# Production Security
+server:
+  ssl:
+    enabled: ${SSL_ENABLED:false}
+    key-store: ${SSL_KEYSTORE:}
+    key-store-password: ${SSL_KEYSTORE_PASSWORD:}
+
+# Production Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+---
+
+# Environment Variables Template (.env

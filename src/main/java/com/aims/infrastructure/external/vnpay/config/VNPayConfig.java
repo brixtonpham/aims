@@ -127,6 +127,9 @@ public class VNPayConfig {
      * @return Random number string
      */
     public String getRandomNumber(int len) {
+        if (len <= 0) {
+            return "";
+        }
         String chars = "0123456789";
         StringBuilder sb = new StringBuilder(len);
         for (int i = 0; i < len; i++) {

@@ -48,7 +48,7 @@ public class ApplicationConfig implements WebMvcConfigurer {
      * Cache manager for application-level caching
      */
     @Bean
-    @Profile("!test")
+    @Profile("!test & !dev")
     public CacheManager cacheManager() {
         return new ConcurrentMapCacheManager(
             "products",

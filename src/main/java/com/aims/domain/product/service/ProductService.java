@@ -34,15 +34,20 @@ public class ProductService {
      * Create a new product with business validation
      */
     public Product createProduct(Product product) {
-        logger.debug("Creating new product: {}", product.getTitle());
-        
         // Domain validation
         validateProductForCreation(product);
+        
+        logger.debug("Creating new product: {}", product.getTitle());
         
         // Business rule: Ensure product has proper defaults
         prepareProductForCreation(product);
         
         Product savedProduct = productRepository.save(product);
+        
+        if (savedProduct == null) {
+            throw new IllegalStateException("Product repository returned null after save operation");
+        }
+        
         logger.info("Product created successfully with ID: {}", savedProduct.getProductId());
         
         return savedProduct;

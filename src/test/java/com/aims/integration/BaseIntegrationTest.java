@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 public abstract class BaseIntegrationTest {
 
     @BeforeEach
-    void setUp() {
+    protected void setUp() {
         // Common setup for all integration tests
         setupTestData();
     }

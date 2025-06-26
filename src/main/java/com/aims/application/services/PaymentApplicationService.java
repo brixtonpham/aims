@@ -60,26 +60,31 @@ public class PaymentApplicationService {
         logger.info("Initiating payment for order: {}", request.getOrderId());
         
         try {
-            // 1. Validate order exists and can be paid
+            // 1. Validate request
+            if (request.getAmount() == null || request.getAmount() <= 0) {
+                throw new IllegalArgumentException("Amount must be positive");
+            }
+            
+            // 2. Validate order exists and can be paid
             if (!orderService.canProcessPayment(request.getOrderId())) {
                 logger.warn("Order cannot be paid: {}", request.getOrderId());
                 return PaymentResponse.failure("01", "Order cannot be paid");
             }
 
-            // 2. Create payment transaction record
+            // 3. Create payment transaction record
             PaymentTransaction transaction = createPaymentTransaction(request);
             paymentTransactionRepository.save(transaction);
 
-            // 3. Convert to boundary request
+            // 4. Convert to boundary request
             PaymentRequest paymentRequest = mapToPaymentRequest(request);
 
-            // 4. Call payment boundary (VNPay)
+            // 5. Call payment boundary (VNPay)
             PaymentResponse response = paymentBoundary.initiatePayment(paymentRequest, servletRequest);
 
-            // 5. Update transaction with response details
+            // 6. Update transaction with response details
             if (response.isSuccess()) {
-                // PaymentTransaction doesn't have setPaymentUrl method, store in gatewayResponseMessage
-                transaction.setGatewayResponseMessage("Payment URL: " + response.getPaymentUrl());
+                // Store a simple success message instead of the long payment URL
+                transaction.setGatewayResponseMessage("Payment initiated successfully");
                 transaction.setTransactionStatus(PaymentTransaction.TransactionStatus.PENDING);
                 paymentTransactionRepository.save(transaction);
                 
@@ -95,6 +100,9 @@ public class PaymentApplicationService {
 
             return response;
 
+        } catch (IllegalArgumentException e) {
+            // Re-throw validation exceptions
+            throw e;
         } catch (Exception e) {
             logger.error("Error initiating payment for order: {}", request.getOrderId(), e);
             return PaymentResponse.failure("99", "Payment initiation failed");
