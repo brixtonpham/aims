@@ -13,7 +13,6 @@ import com.aims.vnpay.common.service.VNPayService.QueryResponse;
 import com.aims.vnpay.common.service.VNPayService.RefundResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +35,7 @@ public class VNPayPaymentAdapter implements PaymentDomainService {
     private final PaymentService vnpayService;
     
     @Autowired
-    public VNPayPaymentAdapter(@Qualifier("vnpayService") PaymentService vnpayService) {
+    public VNPayPaymentAdapter(PaymentService vnpayService) {
         this.vnpayService = vnpayService;
         logger.info("VNPay Payment Adapter initialized with existing VNPay service");
     }
