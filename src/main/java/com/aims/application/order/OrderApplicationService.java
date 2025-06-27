@@ -5,6 +5,7 @@ import com.aims.application.commands.PlaceOrderCommand;
 import com.aims.application.dto.order.CancellationResult;
 import com.aims.application.dto.order.OrderCreationResult;
 import com.aims.application.dto.order.OrderTrackingResult;
+import com.aims.application.command.CommandBus;
 import com.aims.domain.notification.service.NotificationService;
 import com.aims.domain.order.entity.Order;
 import com.aims.domain.order.repository.OrderRepository;
@@ -43,6 +44,7 @@ public class OrderApplicationService {
     private final PaymentDomainService paymentDomainService;
     private final NotificationService notificationService;
     private final OrderRepository orderRepository;
+    private final CommandBus commandBus;
 
     /**
      * Places a new order with comprehensive workflow orchestration.
@@ -572,6 +574,70 @@ public class OrderApplicationService {
             orderDomainService.cancelOrder(String.valueOf(order.getOrderId()));
         } catch (Exception cancelException) {
             log.error("Failed to cancel order after {}: {}", reason, order.getOrderId(), cancelException);
+        }
+    }
+
+    /**
+     * Places an order using the new Command Pattern (Phase 3)
+     * This method uses the CommandBus to execute PlaceOrderCommand
+     * 
+     * @param customerId The customer ID
+     * @param items List of order items
+     * @param deliveryInfo Delivery information
+     * @return Order creation result
+     */
+    public com.aims.application.command.order.OrderCreationResult placeOrderWithCommandBus(
+            String customerId, 
+            java.util.List<com.aims.domain.order.entity.OrderItem> items,
+            com.aims.domain.order.entity.DeliveryInfo deliveryInfo) {
+        
+        log.info("Processing order placement using CommandBus for customer: {}", customerId);
+        
+        try {
+            com.aims.application.command.order.PlaceOrderCommand command = 
+                com.aims.application.command.order.PlaceOrderCommand.builder()
+                    .customerId(customerId)
+                    .items(items)
+                    .deliveryInfo(deliveryInfo)
+                    .build();
+            
+            return commandBus.execute(command);
+            
+        } catch (Exception e) {
+            log.error("Order placement failed using CommandBus for customer: {}", customerId, e);
+            throw new com.aims.application.command.CommandExecutionException("Failed to place order", e);
+        }
+    }
+    
+    /**
+     * Cancels an order using the new Command Pattern (Phase 3)
+     * This method uses the CommandBus to execute CancelOrderCommand
+     * 
+     * @param orderId The order ID to cancel
+     * @param requestedBy Who requested the cancellation
+     * @param reason Cancellation reason
+     * @return Cancellation result
+     */
+    public com.aims.application.command.order.CancellationResult cancelOrderWithCommandBus(
+            String orderId, 
+            String requestedBy, 
+            String reason) {
+        
+        log.info("Processing order cancellation using CommandBus for order: {}", orderId);
+        
+        try {
+            com.aims.application.command.order.CancelOrderCommand command = 
+                com.aims.application.command.order.CancelOrderCommand.builder()
+                    .orderId(orderId)
+                    .requestedBy(requestedBy)
+                    .reason(reason)
+                    .build();
+            
+            return commandBus.execute(command);
+            
+        } catch (Exception e) {
+            log.error("Order cancellation failed using CommandBus for order: {}", orderId, e);
+            throw new com.aims.application.command.CommandExecutionException("Failed to cancel order", e);
         }
     }
 }
