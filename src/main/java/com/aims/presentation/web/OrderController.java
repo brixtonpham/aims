@@ -3,10 +3,14 @@ package com.aims.presentation.web;
 import com.aims.presentation.dto.ApiResponse;
 import com.aims.presentation.dto.OrderRequest;
 import com.aims.presentation.dto.OrderResponse;
+import com.aims.domain.order.entity.Order;
+import com.aims.domain.order.repository.OrderRepository;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -23,6 +27,7 @@ import java.util.List;
 @RequestMapping("/api/orders")
 public class OrderController {
 
+    private static final Logger log = LoggerFactory.getLogger(OrderController.class);
     private static final String VALIDATION_ERROR = "VALIDATION_ERROR";
     private static final String INTERNAL_ERROR = "INTERNAL_ERROR";
     private static final String NOT_IMPLEMENTED = "NOT_IMPLEMENTED";
@@ -30,9 +35,12 @@ public class OrderController {
 
     // OrderApplicationService will be injected here when available in future phases
     private final com.aims.application.order.OrderApplicationService orderApplicationService;
+    private final OrderRepository orderRepository;
     
-    public OrderController(com.aims.application.order.OrderApplicationService orderApplicationService) {
+    public OrderController(com.aims.application.order.OrderApplicationService orderApplicationService,
+                          OrderRepository orderRepository) {
         this.orderApplicationService = orderApplicationService;
+        this.orderRepository = orderRepository;
     }
 
     /**
@@ -174,22 +182,48 @@ public class OrderController {
                     .body(ApiResponse.error("Valid customer ID is required", VALIDATION_ERROR));
             }
             
-            // For Phase 4, implement basic functionality - will be enhanced in future phases
+            // Customer ID is required for listing orders
             if (customerId == null) {
                 return ResponseEntity.badRequest()
                     .body(ApiResponse.error("Customer ID is required for listing orders", VALIDATION_ERROR));
             }
             
-            // Create a sample response list (placeholder implementation)
-            List<OrderResponse> ordersList = new java.util.ArrayList<>();
+            // Validate pagination parameters
+            if (page < 0) {
+                return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Page number cannot be negative", VALIDATION_ERROR));
+            }
+            if (size <= 0 || size > 100) {
+                return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Page size must be between 1 and 100", VALIDATION_ERROR));
+            }
             
-            // TODO: Implement real functionality in future phases
-            // This would call orderApplicationService.getOrdersForCustomer(customerId, page, size)
-            // and convert to OrderResponse DTOs
+            // Get orders from repository using the available method
+            List<Order> orders = orderRepository.findByCustomerId(customerId);
+            
+            // Apply pagination manually (since we don't have Pageable support yet)
+            int startIndex = page * size;
+            int endIndex = Math.min(startIndex + size, orders.size());
+            
+            List<Order> paginatedOrders;
+            if (startIndex >= orders.size()) {
+                paginatedOrders = new java.util.ArrayList<>();
+            } else {
+                paginatedOrders = orders.subList(startIndex, endIndex);
+            }
+            
+            // Convert to OrderResponse DTOs
+            List<OrderResponse> ordersList = paginatedOrders.stream()
+                .map(this::convertToOrderResponse)
+                .toList();
+            
+            log.info("Retrieved {} orders for customer: {} (page: {}, size: {})", 
+                    ordersList.size(), customerId, page, size);
             
             return ResponseEntity.ok(ApiResponse.success("Orders retrieved successfully", ordersList));
 
         } catch (Exception e) {
+            log.error("Failed to get orders for customer: {}", customerId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("Failed to get orders", INTERNAL_ERROR));
         }
@@ -400,5 +434,70 @@ public class OrderController {
         if (item.getUnitPrice() == null || item.getUnitPrice().compareTo(java.math.BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Valid unit price is required for all order items");
         }
+    }
+    
+    /**
+     * Convert Order domain entity to OrderResponse DTO
+     */
+    private OrderResponse convertToOrderResponse(Order order) {
+        if (order == null) {
+            return null;
+        }
+        
+        OrderResponse response = new OrderResponse();
+        response.setOrderId(order.getOrderId());
+        response.setCustomerId(Long.valueOf(order.getCustomerId())); // Convert String to Long
+        response.setOrderStatus(order.getStatus() != null ? order.getStatus().toString() : "UNKNOWN");
+        
+        // Convert totalAfterVAT from Long to BigDecimal
+        if (order.getTotalAfterVAT() != null) {
+            response.setTotalAmount(new java.math.BigDecimal(order.getTotalAfterVAT()));
+        }
+        
+        // Set delivery address if available - using deliveryInfo
+        if (order.getDeliveryInfo() != null && order.getDeliveryInfo().getAddress() != null) {
+            response.setDeliveryAddress(order.getDeliveryInfo().getAddress());
+        }
+        
+        // Set timestamps if available
+        if (order.getCreatedAt() != null) {
+            response.setOrderDate(order.getCreatedAt());
+        }
+        
+        // Convert order items if available
+        if (order.getOrderItems() != null && !order.getOrderItems().isEmpty()) {
+            List<com.aims.presentation.dto.OrderItemResponse> orderItems = order.getOrderItems().stream()
+                .map(this::convertToOrderItemResponse)
+                .toList();
+            response.setOrderItems(orderItems);
+        }
+        
+        return response;
+    }
+    
+    /**
+     * Convert OrderItem domain entity to OrderItemResponse DTO
+     */
+    private com.aims.presentation.dto.OrderItemResponse convertToOrderItemResponse(
+            com.aims.domain.order.entity.OrderItem orderItem) {
+        
+        if (orderItem == null) {
+            return null;
+        }
+        
+        com.aims.presentation.dto.OrderItemResponse response = new com.aims.presentation.dto.OrderItemResponse();
+        response.setOrderItemId(orderItem.getOrderItemId());
+        response.setProductId(orderItem.getProductId());
+        response.setProductTitle(orderItem.getProductTitle());
+        response.setQuantity(orderItem.getQuantity());
+        
+        // Convert prices from Integer/long to BigDecimal
+        if (orderItem.getUnitPrice() != null) {
+            response.setUnitPrice(new java.math.BigDecimal(orderItem.getUnitPrice()));
+        }
+        // totalPrice is a primitive long, so it's never null
+        response.setTotalPrice(java.math.BigDecimal.valueOf(orderItem.getTotalPrice()));
+        
+        return response;
     }
 }

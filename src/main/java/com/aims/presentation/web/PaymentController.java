@@ -5,12 +5,16 @@ import com.aims.domain.payment.model.PaymentMethod;
 import com.aims.domain.payment.model.PaymentResult;
 import com.aims.domain.payment.model.RefundResult;
 import com.aims.presentation.dto.ApiResponse;
+import com.aims.vnpay.common.entity.TransactionInfo;
+import com.aims.vnpay.common.repository.TransactionRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -27,6 +31,7 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:3000")
 public class PaymentController {
 
+    private static final Logger log = LoggerFactory.getLogger(PaymentController.class);
     private static final String VALIDATION_ERROR = "VALIDATION_ERROR";
     private static final String INTERNAL_ERROR = "INTERNAL_ERROR";
     
@@ -37,16 +42,20 @@ public class PaymentController {
     private static final String TRANSACTION_ID = "transactionId";
     private static final String MESSAGE = "message";
     private static final String REASON = "reason";
+    private static final String STATUS = "status";
 
     private final PaymentApplicationService paymentApplicationService;
+    private final TransactionRepository transactionRepository;
     
     // Inject VNPayController for delegation to preserve existing functionality
     private final com.aims.vnpay.common.controller.VNPayController vnpayController;
 
     @Autowired
     public PaymentController(PaymentApplicationService paymentApplicationService,
+                           TransactionRepository transactionRepository,
                            com.aims.vnpay.common.controller.VNPayController vnpayController) {
         this.paymentApplicationService = paymentApplicationService;
+        this.transactionRepository = transactionRepository;
         this.vnpayController = vnpayController;
     }
 
@@ -112,7 +121,7 @@ public class PaymentController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of(
-                    "status", "ERROR",
+                    STATUS, "ERROR",
                     MESSAGE, "Error processing VNPay callback",
                     "error", e.getMessage()
                 ));
@@ -181,13 +190,13 @@ public class PaymentController {
                     .body(ApiResponse.error("Transaction ID is required", VALIDATION_ERROR));
             }
 
-            // For Phase 4, create a mock status response - will be enhanced in future phases
-            // In real implementation, this would call paymentApplicationService.getPaymentStatus(transactionId)
-            Map<String, Object> statusInfo = createMockPaymentStatus(transactionId);
+            // Try to get real payment status from the transaction repository
+            Map<String, Object> statusInfo = getPaymentStatusFromRepository(transactionId);
             
             return ResponseEntity.ok(ApiResponse.success("Payment status retrieved successfully", statusInfo));
 
         } catch (Exception e) {
+            log.error("Failed to get payment status for transaction: {}", transactionId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("Failed to get payment status", INTERNAL_ERROR));
         }
@@ -197,15 +206,37 @@ public class PaymentController {
      * Create mock payment status for Phase 4 implementation
      * This will be replaced with real implementation in future phases
      */
-    private Map<String, Object> createMockPaymentStatus(String transactionId) {
+    private Map<String, Object> getPaymentStatusFromRepository(String transactionId) {
+        // First try to find real transaction data
+        TransactionInfo transaction = transactionRepository.findByOrderId(transactionId);
+        
         Map<String, Object> statusInfo = new java.util.HashMap<>();
-        statusInfo.put(TRANSACTION_ID, transactionId);
-        statusInfo.put("status", "PENDING");
-        statusInfo.put("statusDescription", "Payment is being processed");
-        statusInfo.put(AMOUNT, 150000L);
-        statusInfo.put("currency", "VND");
-        statusInfo.put("createdAt", java.time.LocalDateTime.now().toString());
-        statusInfo.put(ORDER_ID, "ORD-" + transactionId.substring(Math.max(0, transactionId.length() - 6)));
+        
+        if (transaction != null) {
+            // Return real transaction information
+            statusInfo.put(TRANSACTION_ID, transactionId);
+            statusInfo.put(STATUS, "COMPLETED"); // Assuming completed if found
+            statusInfo.put("statusDescription", "Payment completed successfully");
+            statusInfo.put(AMOUNT, transaction.getAmount());
+            statusInfo.put("currency", "VND");
+            statusInfo.put("createdAt", transaction.getCreatedAt() != null ? 
+                transaction.getCreatedAt().toString() : java.time.LocalDateTime.now().toString());
+            statusInfo.put(ORDER_ID, transaction.getOrderId());
+            statusInfo.put("paymentMethod", "VNPAY");
+            statusInfo.put("transactionNo", transaction.getTransactionNo());
+            statusInfo.put("responseCode", transaction.getResponseCode());
+            statusInfo.put("transactionStatus", transaction.getTransactionStatus());
+        } else {
+            // Return default status if transaction not found
+            statusInfo.put(TRANSACTION_ID, transactionId);
+            statusInfo.put(STATUS, "NOT_FOUND");
+            statusInfo.put("statusDescription", "Transaction not found or pending");
+            statusInfo.put(AMOUNT, 0L);
+            statusInfo.put("currency", "VND");
+            statusInfo.put("createdAt", java.time.LocalDateTime.now().toString());
+            statusInfo.put(ORDER_ID, "ORD-" + transactionId.substring(Math.max(0, transactionId.length() - 6)));
+        }
+        
         return statusInfo;
     }
 
