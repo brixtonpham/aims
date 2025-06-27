@@ -1,6 +1,6 @@
-package Project_ITSS.vnpay.common.repository;
+package com.aims.vnpay.common.repository;
 
-import Project_ITSS.vnpay.common.entity.TransactionInfo;
+import com.aims.vnpay.common.entity.TransactionInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,7 +1,7 @@
-package Project_ITSS.vnpay.common.factory;
+package com.aims.vnpay.common.factory;
 
-import Project_ITSS.vnpay.common.strategy.PaymentStrategy;
-import Project_ITSS.vnpay.common.strategy.VNPayStrategy;
+import com.aims.vnpay.common.strategy.PaymentStrategy;
+import com.aims.vnpay.common.strategy.VNPayStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

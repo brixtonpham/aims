@@ -1,4 +1,4 @@
-package Project_ITSS.vnpay.common.service;
+package com.aims.vnpay.common.service;
 
 /**
  * Interface cho notification service - giải quyết tight coupling

@@ -1,6 +1,6 @@
-package Project_ITSS.CancelOrder.Strategy;
+package com.aims.CancelOrder.Strategy;
 
-import Project_ITSS.vnpay.common.dto.RefundRequest;
+import com.aims.vnpay.common.dto.RefundRequest;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
@@ -17,7 +17,7 @@ public interface PaymentStrategy {
     /**
      * Validate transaction for the payment method
      */
-    boolean validateTransaction(String orderId, Project_ITSS.vnpay.common.repository.TransactionRepository transactionRepository);
+    boolean validateTransaction(String orderId, com.aims.vnpay.common.repository.TransactionRepository transactionRepository);
     
     /**
      * Get payment method name

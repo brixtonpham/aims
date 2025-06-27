@@ -104,4 +104,11 @@ public interface OrderRepository {
      * @return total number of orders
      */
     long count();
+    
+    /**
+     * Find orders by customer ID ordered by creation date descending
+     * @param customerId the customer ID
+     * @return list of orders for the customer ordered by newest first
+     */
+    List<Order> findByCustomerIdOrderByCreatedAtDesc(String customerId);
 }

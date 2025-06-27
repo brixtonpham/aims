@@ -1,7 +1,7 @@
-package Project_ITSS.vnpay.common.observer;
+package com.aims.vnpay.common.observer;
 
-import Project_ITSS.vnpay.common.service.NotificationService;
-import Project_ITSS.vnpay.common.service.VNPayService.PaymentResponse;
+import com.aims.vnpay.common.service.NotificationService;
+import com.aims.vnpay.common.service.VNPayService.PaymentResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

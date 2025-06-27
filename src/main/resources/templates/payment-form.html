@@ -1,56 +1,257 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>VNPay Payment Form</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán - AIMS Payment</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .container {
-            max-width: 600px;
-            margin: 50px auto;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
         }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        input[type="text"], input[type="number"] {
+        
+        .payment-form-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 500px;
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            overflow: hidden;
         }
-        button {
-            background-color: #007bff;
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+            padding: 30px;
+            text-align: center;
         }
-        button:hover {
-            background-color: #0056b3;
+        
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+        }
+        
+        .form-content {
+            padding: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #495057;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .amount-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .amount-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .bank-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .bank-option {
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .bank-option:hover,
+        .bank-option.selected {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 576px) {
+            .bank-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>VNPay Payment Form</h2>
-        <form th:action="@{/api/payment/create}" method="post">
-            <div class="form-group">
-                <label for="amount">Amount (VND)</label>
-                <input type="number" id="amount" name="amount" required min="1000" step="1000" value="10000">
-            </div>
-            <div class="form-group">
-                <label for="orderInfo">Order Information</label>
-                <input type="text" id="orderInfo" name="orderInfo" required value="Test payment">
-            </div>
-            <button type="submit">Proceed to Payment</button>
-        </form>
+    <div class="payment-form-container">
+        <div class="header">
+            <h1><i class="fas fa-credit-card"></i> Thanh toán đơn hàng</h1>
+            <p>Vui lòng điền thông tin để thực hiện thanh toán</p>
+        </div>
+        
+        <div class="form-content">
+            <form th:action="@{/api/payment/create}" method="POST">
+                <div class="form-group">
+                    <label for="amount">Số tiền thanh toán (VND):</label>
+                    <input type="number" id="amount" name="amount" value="100000" min="1000" step="1000" required>
+                </div>
+                
+                <div class="amount-display">
+                    <div>Tổng thanh toán:</div>
+                    <div class="amount-value" id="displayAmount">100,000 VND</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="language">Ngôn ngữ giao diện:</label>
+                    <select id="language" name="language" required>
+                        <option value="vn">Tiếng Việt</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Chọn ngân hàng (tùy chọn):</label>
+                    <div class="bank-grid">
+                        <div class="bank-option selected" data-bank="">
+                            <div><strong>Tất cả</strong></div>
+                            <small>Tự chọn</small>
+                        </div>
+                        <div class="bank-option" data-bank="VCB">
+                            <div><strong>VCB</strong></div>
+                            <small>Vietcombank</small>
+                        </div>
+                        <div class="bank-option" data-bank="TCB">
+                            <div><strong>TCB</strong></div>
+                            <small>Techcombank</small>
+                        </div>
+                        <div class="bank-option" data-bank="VTB">
+                            <div><strong>VTB</strong></div>
+                            <small>VietinBank</small>
+                        </div>
+                        <div class="bank-option" data-bank="BIDV">
+                            <div><strong>BIDV</strong></div>
+                            <small>BIDV</small>
+                        </div>
+                        <div class="bank-option" data-bank="AGR">
+                            <div><strong>AGR</strong></div>
+                            <small>Agribank</small>
+                        </div>
+                    </div>
+                    <input type="hidden" id="bankCode" name="bankCode" value="">
+                </div>
+                
+                <input type="hidden" name="vnp_Version" value="2.1.0">
+                
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-lock"></i> Thanh toán an toàn với VNPay
+                </button>
+            </form>
+        </div>
+        
+        <div class="footer">
+            <p>© 2024 AIMS Payment System</p>
+            <p><i class="fas fa-shield-alt"></i> Giao dịch được bảo mật bởi VNPay</p>
+        </div>
     </div>
+    
+    <script>
+        // Amount formatting
+        const amountInput = document.getElementById('amount');
+        const displayAmount = document.getElementById('displayAmount');
+        
+        function formatAmount(amount) {
+            return new Intl.NumberFormat('vi-VN').format(amount) + ' VND';
+        }
+        
+        amountInput.addEventListener('input', function() {
+            const amount = parseInt(this.value) || 0;
+            displayAmount.textContent = formatAmount(amount);
+        });
+        
+        // Bank selection
+        const bankOptions = document.querySelectorAll('.bank-option');
+        const bankCodeInput = document.getElementById('bankCode');
+        
+        bankOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected class from all options
+                bankOptions.forEach(opt => opt.classList.remove('selected'));
+                
+                // Add selected class to clicked option
+                this.classList.add('selected');
+                
+                // Set bank code
+                bankCodeInput.value = this.dataset.bank;
+            });
+        });
+        
+        // Initialize display amount
+        displayAmount.textContent = formatAmount(parseInt(amountInput.value));
+    </script>
 </body>
 </html>

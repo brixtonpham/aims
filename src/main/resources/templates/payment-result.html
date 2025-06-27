@@ -1,72 +1,433 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Payment Result</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết quả thanh toán - AIMS Payment</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .container {
-            max-width: 600px;
-            margin: 50px auto;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+        }
+        
+        .payment-result-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+            animation: slideInUp 0.6s ease-out;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+        }
+        
+        .status-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .success-icon {
+            color: #28a745;
+            animation: checkmark 0.6s ease-in-out;
+        }
+        
+        .failed-icon {
+            color: #dc3545;
+            animation: shake 0.6s ease-in-out;
+        }
+        
+        .pending-icon {
+            color: #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes checkmark {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .status-title {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .status-message {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .transaction-details {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+            display: flex;
+            align-items: center;
+        }
+        
+        .detail-label i {
+            margin-right: 8px;
+            width: 20px;
             text-align: center;
         }
-        .status {
-            padding: 15px;
-            border-radius: 4px;
-            margin: 20px 0;
+        
+        .detail-value {
+            font-weight: 500;
+            color: #212529;
+            text-align: right;
+        }
+        
+        .amount {
+            font-size: 1.2rem;
+            color: #28a745;
             font-weight: bold;
         }
-        .status.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .status.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .status.failed {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-        }
-        .details {
-            margin-top: 20px;
-            text-align: left;
-            padding: 15px;
-            background-color: #f8f9fa;
+        
+        .transaction-id {
+            font-family: 'Courier New', monospace;
+            background: #e9ecef;
+            padding: 4px 8px;
             border-radius: 4px;
+            font-size: 0.9rem;
         }
-        .back-button {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
+        
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
             text-decoration: none;
-            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
         }
-        .back-button:hover {
-            background-color: #0056b3;
+        
+        .btn i {
+            margin-right: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .security-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .security-note i {
+            margin-right: 5px;
+            color: #28a745;
+        }
+        
+        @media (max-width: 576px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 25px 20px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .transaction-details {
+                padding: 20px;
+            }
+            
+            .detail-row {
+                flex-direction: column;
+                align-items: flex-start;
+                text-align: left;
+            }
+            
+            .detail-value {
+                text-align: left;
+                margin-top: 5px;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Payment Result</h2>
-        
-        <div th:class="'status ' + ${payment.status.toLowerCase()}"
-             th:text="${payment.message}">
-        </div>
-        
-        <div class="details">
-            <p><strong>Transaction Reference:</strong> <span th:text="${payment.transactionId}"></span></p>
+    <div class="payment-result-container">
+        <!-- Header Section -->
+        <div class="header">
+            <div th:switch="${status}">
+                <i th:case="'SUCCESS'" class="fas fa-check-circle status-icon success-icon"></i>
+                <i th:case="'FAILED'" class="fas fa-times-circle status-icon failed-icon"></i>
+                <i th:case="*" class="fas fa-clock status-icon pending-icon"></i>
+            </div>
+            
+            <h1 class="status-title" th:switch="${status}">
+                <span th:case="'SUCCESS'">Thanh toán thành công!</span>
+                <span th:case="'FAILED'">Thanh toán thất bại!</span>
+                <span th:case="*">Đang xử lý thanh toán...</span>
+            </h1>
+            
+            <p class="status-message" th:text="${message}">Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.</p>
         </div>
 
-        <a href="/api/payment/form" class="back-button">Make Another Payment</a>
+        <!-- Content Section -->
+        <div class="content">
+            <div class="transaction-details">
+                <h3 style="margin-bottom: 20px; color: #495057;">
+                    <i class="fas fa-receipt"></i> Chi tiết giao dịch
+                </h3>
+                
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-hashtag"></i>
+                        Mã đơn hàng:
+                    </span>
+                    <span class="detail-value transaction-id" th:text="${transactionId}">ORDER123456</span>
+                </div>
+                
+                <div class="detail-row" th:if="${amount != null}">
+                    <span class="detail-label">
+                        <i class="fas fa-money-bill-wave"></i>
+                        Số tiền:
+                    </span>
+                    <span class="detail-value amount" th:text="${#numbers.formatDecimal(amount/100, 0, 'COMMA', 0, 'POINT')} + ' VND'">100,000 VND</span>
+                </div>
+                
+                <div class="detail-row" th:if="${vnpayTransactionId != null}">
+                    <span class="detail-label">
+                        <i class="fas fa-barcode"></i>
+                        Mã giao dịch VNPay:
+                    </span>
+                    <span class="detail-value transaction-id" th:text="${vnpayTransactionId}">VNP123456789</span>
+                </div>
+                
+                <div class="detail-row" th:if="${bankCode != null}">
+                    <span class="detail-label">
+                        <i class="fas fa-university"></i>
+                        Ngân hàng:
+                    </span>
+                    <span class="detail-value" th:text="${bankCode}">VCB</span>
+                </div>
+                
+                <div class="detail-row" th:if="${payDate != null}">
+                    <span class="detail-label">
+                        <i class="fas fa-calendar-alt"></i>
+                        Thời gian thanh toán:
+                    </span>
+                    <span class="detail-value" th:text="${payDate}">2024-01-15 14:30:25</span>
+                </div>
+                
+                <div class="detail-row" th:if="${orderInfo != null}">
+                    <span class="detail-label">
+                        <i class="fas fa-info-circle"></i>
+                        Thông tin đơn hàng:
+                    </span>
+                    <span class="detail-value" th:text="${orderInfo}">Thanh toán đơn hàng</span>
+                </div>
+                
+                <div class="detail-row" th:if="${responseCode != null}">
+                    <span class="detail-label">
+                        <i class="fas fa-code"></i>
+                        Mã phản hồi:
+                    </span>
+                    <span class="detail-value" th:text="${responseCode}">00</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="actions">
+                <div th:switch="${status}">
+                    <div th:case="'SUCCESS'">
+                        <a href="/order-details" class="btn btn-primary">
+                            <i class="fas fa-eye"></i>
+                            Xem chi tiết đơn hàng
+                        </a>
+                        <a href="/" class="btn btn-success">
+                            <i class="fas fa-home"></i>
+                            Về trang chủ
+                        </a>
+                    </div>
+                    <div th:case="'FAILED'">
+                        <a href="/payment/retry" class="btn btn-primary">
+                            <i class="fas fa-redo"></i>
+                            Thử lại thanh toán
+                        </a>
+                        <a href="/support" class="btn btn-secondary">
+                            <i class="fas fa-question-circle"></i>
+                            Hỗ trợ
+                        </a>
+                        <a href="/" class="btn btn-secondary">
+                            <i class="fas fa-home"></i>
+                            Về trang chủ
+                        </a>
+                    </div>
+                    <div th:case="*">
+                        <a href="/payment/status" class="btn btn-primary">
+                            <i class="fas fa-sync"></i>
+                            Kiểm tra trạng thái
+                        </a>
+                        <a href="/" class="btn btn-secondary">
+                            <i class="fas fa-home"></i>
+                            Về trang chủ
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2024 AIMS Payment System. Tất cả các quyền được bảo lưu.</p>
+            <div class="security-note">
+                <i class="fas fa-shield-alt"></i>
+                <span>Giao dịch được bảo mật bởi VNPay</span>
+            </div>
+        </div>
     </div>
+
+    <script>
+        // Auto refresh for pending status
+        const status = /*[[${status}]]*/ 'SUCCESS';
+        if (status === 'PENDING') {
+            setTimeout(function() {
+                window.location.reload();
+            }, 5000);
+        }
+        
+        // Print receipt functionality
+        function printReceipt() {
+            window.print();
+        }
+    </script>
 </body>
 </html>

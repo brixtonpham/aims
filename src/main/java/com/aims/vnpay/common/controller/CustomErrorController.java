@@ -2,7 +2,7 @@
  * Custom error controller for handling application errors
  * Provides custom error page and handling for different error scenarios
  */
-package Project_ITSS.vnpay.common.controller;
+package com.aims.vnpay.common.controller;
 
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpStatus;

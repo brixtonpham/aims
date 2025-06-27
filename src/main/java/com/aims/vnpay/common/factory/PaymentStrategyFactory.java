@@ -1,6 +1,6 @@
-package Project_ITSS.vnpay.common.factory;
+package com.aims.vnpay.common.factory;
 
-import Project_ITSS.vnpay.common.strategy.PaymentStrategy;
+import com.aims.vnpay.common.strategy.PaymentStrategy;
 
 /**
  * Factory Pattern cho Payment Strategy Creation

@@ -2,20 +2,20 @@
  * Controller handling VNPAY payment integration endpoints
  * Provides REST APIs for payment creation, confirmation, query and refund operations
  */
-package Project_ITSS.vnpay.common.controller;
+package com.aims.vnpay.common.controller;
 
-import Project_ITSS.vnpay.common.service.PaymentService;
-import Project_ITSS.vnpay.common.service.VNPayService.PaymentResponse;
-import Project_ITSS.vnpay.common.service.VNPayService.QueryResponse;
-import Project_ITSS.vnpay.common.service.VNPayService.RefundResponse;
-import Project_ITSS.vnpay.common.dto.IPNResponse;
-import Project_ITSS.vnpay.common.dto.PaymentRequest;
-import Project_ITSS.vnpay.common.dto.PaymentReturnResponse;
-import Project_ITSS.vnpay.common.service.OrderService;
-import Project_ITSS.vnpay.common.dto.QueryRequest;
-import Project_ITSS.vnpay.common.dto.RefundRequest;
-import Project_ITSS.vnpay.common.observer.PaymentSubject;
-import Project_ITSS.vnpay.common.service.HashService;
+import com.aims.vnpay.common.service.PaymentService;
+import com.aims.vnpay.common.service.VNPayService.PaymentResponse;
+import com.aims.vnpay.common.service.VNPayService.QueryResponse;
+import com.aims.vnpay.common.service.VNPayService.RefundResponse;
+import com.aims.vnpay.common.dto.IPNResponse;
+import com.aims.vnpay.common.dto.PaymentRequest;
+import com.aims.vnpay.common.dto.PaymentReturnResponse;
+import com.aims.vnpay.common.service.OrderService;
+import com.aims.vnpay.common.dto.QueryRequest;
+import com.aims.vnpay.common.dto.RefundRequest;
+import com.aims.vnpay.common.observer.PaymentSubject;
+import com.aims.vnpay.common.service.HashService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -261,11 +261,13 @@ public class VNPayController {
             result.put("message", "Invalid signature");
         }
         String responseCode = fields.get("vnp_ResponseCode");
-        if (!"00".equals(responseCode)){
-            return new RedirectView("http://localhost:3000/");
-        }
         String orderId = fields.get("vnp_TxnRef");
-        orderService.saveTransactionInfo(orderId, fields);
+        
+        // Save transaction info regardless of success/failure
+        if (orderId != null) {
+            orderService.saveTransactionInfo(orderId, fields);
+        }
+        
         // Log transaction details
         logger.info("Payment return - TxnId: {}, Amount: {}, Status: {}, ResponseCode: {}",
             result.get("transactionId"),
@@ -273,8 +275,19 @@ public class VNPayController {
             result.get("transactionStatus"),
             result.get("responseCode")
         );
+        
+        // Build redirect URL with parameters for payment result page
+        StringBuilder redirectUrl = new StringBuilder("/payment-result?");
+        for (Map.Entry<String, String> entry : requestParams.entrySet()) {
+            redirectUrl.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
+        }
+        
+        // Remove the trailing &
+        if (redirectUrl.toString().endsWith("&")) {
+            redirectUrl.setLength(redirectUrl.length() - 1);
+        }
      
-        return new RedirectView("http://localhost:3000/order-confirmation/" + orderId);
+        return new RedirectView(redirectUrl.toString());
     }
 
     /**
@@ -338,5 +351,146 @@ public class VNPayController {
         response.setMessage("Success");
         
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Display payment result page with complete transaction information
+     * This endpoint provides a user-friendly view of payment results
+     */
+    @GetMapping("/payment-result")
+    public String paymentResultPage(
+            @RequestParam Map<String, String> requestParams,
+            HttpServletRequest request,
+            org.springframework.ui.Model model) {
+        
+        logger.info("Displaying payment result page with params: {}", requestParams);
+        
+        try {
+            // Create copy of params for hash calculation
+            Map<String, String> fields = new HashMap<>(requestParams);
+            
+            // Get and remove hash from param map before recalculating
+            String vnp_SecureHash = fields.get("vnp_SecureHash");
+            fields.remove("vnp_SecureHashType");
+            fields.remove("vnp_SecureHash");
+
+            // Validate hash using HashService
+            String signValue = hashService.hashAllFields(fields);
+            boolean isValidHash = signValue.equals(vnp_SecureHash);
+            
+            if (isValidHash) {
+                // Extract payment information
+                String orderId = fields.get("vnp_TxnRef");
+                String responseCode = fields.get("vnp_ResponseCode");
+                String amount = fields.get("vnp_Amount");
+                String vnpayTransactionId = fields.get("vnp_TransactionNo");
+                String bankCode = fields.get("vnp_BankCode");
+                String payDate = fields.get("vnp_PayDate");
+                String orderInfo = fields.get("vnp_OrderInfo");
+                
+                // Format payment date if available
+                String formattedPayDate = null;
+                if (payDate != null && !payDate.isEmpty()) {
+                    try {
+                        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+                        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+                        LocalDateTime dateTime = LocalDateTime.parse(payDate, inputFormatter);
+                        formattedPayDate = dateTime.format(outputFormatter);
+                    } catch (Exception e) {
+                        logger.warn("Error formatting payment date: {}", payDate);
+                        formattedPayDate = payDate;
+                    }
+                }
+                
+                // Determine status and message
+                String status;
+                String message;
+                
+                if ("00".equals(responseCode)) {
+                    status = "SUCCESS";
+                    message = "Giao dịch đã được thực hiện thành công. Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!";
+                    
+                    // Process successful payment
+                    processSuccessfulPayment(orderId, fields);
+                    
+                } else {
+                    status = "FAILED";
+                    message = getPaymentErrorMessage(responseCode);
+                    
+                    // Process failed payment
+                    processFailedPayment(orderId, responseCode);
+                }
+                
+                // Add attributes to model
+                model.addAttribute("status", status);
+                model.addAttribute("message", message);
+                model.addAttribute("transactionId", orderId);
+                model.addAttribute("amount", amount != null ? Long.parseLong(amount) : null);
+                model.addAttribute("vnpayTransactionId", vnpayTransactionId);
+                model.addAttribute("bankCode", bankCode);
+                model.addAttribute("payDate", formattedPayDate);
+                model.addAttribute("orderInfo", orderInfo);
+                model.addAttribute("responseCode", responseCode);
+                model.addAttribute("validHash", true);
+                
+            } else {
+                // Invalid signature
+                model.addAttribute("status", "INVALID");
+                model.addAttribute("message", "Chữ ký giao dịch không hợp lệ. Vui lòng liên hệ bộ phận hỗ trợ.");
+                model.addAttribute("validHash", false);
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error processing payment result page", e);
+            model.addAttribute("status", "ERROR");
+            model.addAttribute("message", "Đã xảy ra lỗi trong quá trình xử lý. Vui lòng thử lại sau.");
+            model.addAttribute("validHash", false);
+        }
+        
+        return "payment-result";
+    }
+    
+    /**
+     * Get user-friendly error message based on VNPay response code
+     */
+    private String getPaymentErrorMessage(String responseCode) {
+        if (responseCode == null) return "Giao dịch không thành công";
+        
+        switch (responseCode) {
+            case "07":
+                return "Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường)";
+            case "09":
+                return "Thẻ/Tài khoản của khách hàng chưa đăng ký dịch vụ InternetBanking tại ngân hàng";
+            case "10":
+                return "Khách hàng xác thực thông tin thẻ/tài khoản không đúng quá 3 lần";
+            case "11":
+                return "Đã hết hạn chờ thanh toán. Xin quý khách vui lòng thực hiện lại giao dịch";
+            case "12":
+                return "Thẻ/Tài khoản của khách hàng bị khóa";
+            case "13":
+                return "Quý khách nhập sai mật khẩu xác thực giao dịch (OTP). Xin quý khách vui lòng thực hiện lại giao dịch";
+            case "24":
+                return "Khách hàng hủy giao dịch";
+            case "51":
+                return "Tài khoản của quý khách không đủ số dư để thực hiện giao dịch";
+            case "65":
+                return "Tài khoản của Quý khách đã vượt quá hạn mức giao dịch trong ngày";
+            case "75":
+                return "Ngân hàng thanh toán đang bảo trì";
+            case "79":
+                return "KH nhập sai mật khẩu thanh toán quá số lần quy định";
+            case "99":
+                return "Các lỗi khác (lỗi còn lại, không có trong danh sách mã lỗi đã liệt kê)";
+            default:
+                return "Giao dịch không thành công. Mã lỗi: " + responseCode;
+        }
+    }
+
+    /**
+     * Display payment form page
+     */
+    @GetMapping("/payment-form")
+    public String paymentForm() {
+        return "payment-form";
     }
 }

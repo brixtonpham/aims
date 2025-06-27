@@ -2,7 +2,7 @@
  * Configuration class for VNPAY integration
  * Contains all necessary configuration properties and utility methods for VNPAY payment processing
  */
-package Project_ITSS.vnpay.common.config;
+package com.aims.vnpay.common.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;

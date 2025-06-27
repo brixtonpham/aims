@@ -1,4 +1,4 @@
-package Project_ITSS.vnpay.common.service;
+package com.aims.vnpay.common.service;
 
 import java.util.Map;
 

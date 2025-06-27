@@ -1,6 +1,6 @@
-package Project_ITSS.vnpay.common.service.impl;
+package com.aims.vnpay.common.service.impl;
 
-import Project_ITSS.vnpay.common.service.HashService;
+import com.aims.vnpay.common.service.HashService;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Mac;

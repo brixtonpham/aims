@@ -1,6 +1,6 @@
-package Project_ITSS.vnpay.common.observer;
+package com.aims.vnpay.common.observer;
 
-import Project_ITSS.vnpay.common.service.VNPayService.PaymentResponse;
+import com.aims.vnpay.common.service.VNPayService.PaymentResponse;
 
 /**
  * Observer Pattern cho Payment Notifications

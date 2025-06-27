@@ -2,14 +2,14 @@
  * Service class that handles all VNPAY payment integration operations
  * Implements payment creation, query, refund and IPN handling according to VNPAY's specifications
  */
-package Project_ITSS.vnpay.common.service;
+package com.aims.vnpay.common.service;
 
-import Project_ITSS.vnpay.common.config.VNPayConfig;
-import Project_ITSS.vnpay.common.dto.IPNResponse;
-import Project_ITSS.vnpay.common.dto.PaymentRequest;
-import Project_ITSS.vnpay.common.dto.PaymentReturnResponse;
-import Project_ITSS.vnpay.common.dto.QueryRequest;
-import Project_ITSS.vnpay.common.dto.RefundRequest;
+import com.aims.vnpay.common.config.VNPayConfig;
+import com.aims.vnpay.common.dto.IPNResponse;
+import com.aims.vnpay.common.dto.PaymentRequest;
+import com.aims.vnpay.common.dto.PaymentReturnResponse;
+import com.aims.vnpay.common.dto.QueryRequest;
+import com.aims.vnpay.common.dto.RefundRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

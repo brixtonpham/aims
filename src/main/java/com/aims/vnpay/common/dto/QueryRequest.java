@@ -2,7 +2,7 @@
  * DTO class for transaction query requests
  * Used to query transaction status from VNPAY
  */
-package Project_ITSS.vnpay.common.dto;
+package com.aims.vnpay.common.dto;
 
 /**
  * Transaction query request parameters

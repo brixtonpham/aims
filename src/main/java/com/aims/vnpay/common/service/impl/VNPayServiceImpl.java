@@ -1,13 +1,13 @@
-package Project_ITSS.vnpay.common.service.impl;
+package com.aims.vnpay.common.service.impl;
 
-import Project_ITSS.vnpay.common.config.VNPayConfig;
-import Project_ITSS.vnpay.common.dto.PaymentRequest;
-import Project_ITSS.vnpay.common.dto.QueryRequest;
-import Project_ITSS.vnpay.common.dto.RefundRequest;
-import Project_ITSS.vnpay.common.service.*;
-import Project_ITSS.vnpay.common.service.VNPayService.PaymentResponse;
-import Project_ITSS.vnpay.common.service.VNPayService.QueryResponse;
-import Project_ITSS.vnpay.common.service.VNPayService.RefundResponse;
+import com.aims.vnpay.common.config.VNPayConfig;
+import com.aims.vnpay.common.dto.PaymentRequest;
+import com.aims.vnpay.common.dto.QueryRequest;
+import com.aims.vnpay.common.dto.RefundRequest;
+import com.aims.vnpay.common.service.*;
+import com.aims.vnpay.common.service.VNPayService.PaymentResponse;
+import com.aims.vnpay.common.service.VNPayService.QueryResponse;
+import com.aims.vnpay.common.service.VNPayService.RefundResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

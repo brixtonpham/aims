@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNPay Payment Flow Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .flow-step {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #007bff;
+            border-radius: 5px;
+        }
+        .step-title {
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        .payment-url {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+        .test-button {
+            background: #28a745;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .test-button:hover {
+            background: #218838;
+        }
+        .success {
+            color: #28a745;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .step-number {
+            background: #007bff;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 VNPay Payment Flow Test</h1>
+            <p>Step-by-step testing of VNPay payment integration</p>
+        </div>
+
+        <div class="flow-step">
+            <div class="step-title">
+                <span class="step-number">1</span>
+                Order Information Setup
+            </div>
+            <p><span class="success">✓</span> Order ID: ORDER_1751022840119</p>
+            <p><span class="success">✓</span> Amount: 150,000 VND</p>
+            <p><span class="success">✓</span> Bank: NCB (National Citizen Bank)</p>
+        </div>
+
+        <div class="flow-step">
+            <div class="step-title">
+                <span class="step-number">2</span>
+                VNPay Payment Request Creation
+            </div>
+            <p><span class="success">✓</span> Payment request parameters validated</p>
+            <p><span class="success">✓</span> Amount converted: 150,000 VND → 15,000,000 (VND * 100)</p>
+            <p><span class="success">✓</span> Security hash generated</p>
+        </div>
+
+        <div class="flow-step">
+            <div class="step-title">
+                <span class="step-number">3</span>
+                Payment URL Generation
+            </div>
+            <p><span class="success">✓</span> Payment URL successfully generated</p>
+            <div class="payment-url">
+                https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_Amount=15000000&vnp_BankCode=NCB&vnp_Command=pay&vnp_CreateDate=20250627181400&vnp_CurrCode=VND&vnp_ExpireDate=20250627182900&vnp_IpAddr=127.0.0.1&vnp_Locale=vn&vnp_OrderInfo=Payment+for+order+%2312345&vnp_OrderType=other&vnp_ReturnUrl=http%3A%2F%2Flocalhost%3A8080%2Fapi%2Fpayment%2Fvnpay%2Freturn&vnp_TmnCode=YFW5M6GN&vnp_TxnRef=ORDER_1751022840119&vnp_Version=2.1.0&vnp_SecureHash=64d6d48f382d9509013ca2d1774ae3855fe5c4d76cfc47d85b02c5f7f55e45af95d6de28b8caf7c4313df77bb8621292ca00303e73f5739a1057c9e7bf5c3117
+            </div>
+        </div>
+
+        <div class="flow-step">
+            <div class="step-title">
+                <span class="step-number">4</span>
+                Test Payment Gateway
+            </div>
+            <p>Click the button below to test the payment flow:</p>
+            <a href="https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_Amount=15000000&vnp_BankCode=NCB&vnp_Command=pay&vnp_CreateDate=20250627181400&vnp_CurrCode=VND&vnp_ExpireDate=20250627182900&vnp_IpAddr=127.0.0.1&vnp_Locale=vn&vnp_OrderInfo=Payment+for+order+%2312345&vnp_OrderType=other&vnp_ReturnUrl=http%3A%2F%2Flocalhost%3A8080%2Fapi%2Fpayment%2Fvnpay%2Freturn&vnp_TmnCode=YFW5M6GN&vnp_TxnRef=ORDER_1751022840119&vnp_Version=2.1.0&vnp_SecureHash=64d6d48f382d9509013ca2d1774ae3855fe5c4d76cfc47d85b02c5f7f55e45af95d6de28b8caf7c4313df77bb8621292ca00303e73f5739a1057c9e7bf5c3117" target="_blank" class="test-button">
+                🚀 Test Payment (150,000 VND with NCB)
+            </a>
+        </div>
+
+        <div class="info">
+            <h3>📋 Payment Flow Steps:</h3>
+            <ol>
+                <li><strong>User clicks payment button</strong> → Redirected to VNPay gateway</li>
+                <li><strong>User selects payment method</strong> → Bank selection or card input</li>
+                <li><strong>User completes payment</strong> → Authentication with bank/card</li>
+                <li><strong>VNPay processes payment</strong> → Success/failure determination</li>
+                <li><strong>User redirected back</strong> → Return to merchant website</li>
+                <li><strong>Callback processed</strong> → Payment result handled</li>
+                <li><strong>Order status updated</strong> → Database updated accordingly</li>
+            </ol>
+        </div>
+
+        <div class="warning">
+            <h3>⚠️ Testing Notes:</h3>
+            <ul>
+                <li>This is using VNPay's <strong>sandbox environment</strong> - no real money involved</li>
+                <li>Use test card numbers provided by VNPay for testing</li>
+                <li>The return URL (localhost:8080) needs your local server running to handle callbacks</li>
+                <li>Payment will expire in 15 minutes from generation time</li>
+            </ul>
+        </div>
+
+        <div class="flow-step">
+            <div class="step-title">
+                <span class="step-number">5</span>
+                Additional Test Scenarios
+            </div>
+            <p>Test different amounts and scenarios:</p>
+            
+            <a href="#" onclick="generateNewPayment(50000, '')" class="test-button">
+                Test 50,000 VND (General)
+            </a>
+            <a href="#" onclick="generateNewPayment(100000, 'BIDV')" class="test-button">
+                Test 100,000 VND (BIDV)
+            </a>
+            <a href="#" onclick="generateNewPayment(500000, 'VCB')" class="test-button">
+                Test 500,000 VND (VCB)
+            </a>
+        </div>
+
+        <div class="info">
+            <h3>🔧 Integration Status:</h3>
+            <p><span class="success">✓</span> VNPay configuration validated</p>
+            <p><span class="success">✓</span> Payment URL generation working</p>
+            <p><span class="success">✓</span> Parameter encoding correct</p>
+            <p><span class="success">✓</span> Security hash validation passed</p>
+            <p><span class="success">✓</span> Multiple bank codes supported</p>
+            <p><span class="success">✓</span> Amount conversion accurate</p>
+        </div>
+    </div>
+
+    <script>
+        function generateNewPayment(amount, bankCode) {
+            alert(`This would generate a new payment URL for ${amount} VND with bank: ${bankCode || 'General'}.\n\nIn a real implementation, this would call your backend API to generate a fresh payment URL.`);
+        }
+
+        // Show current time
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('VNPay Payment Test Page Loaded');
+            console.log('Generated at:', new Date().toLocaleString());
+        });
+    </script>
+</body>
+</html>

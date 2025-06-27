@@ -1,6 +1,6 @@
-package Project_ITSS.vnpay.common.service.impl;
+package com.aims.vnpay.common.service.impl;
 
-import Project_ITSS.vnpay.common.service.NotificationService;
+import com.aims.vnpay.common.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;

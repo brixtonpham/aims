@@ -1,4 +1,4 @@
-package Project_ITSS.vnpay.common.entity;
+package com.aims.vnpay.common.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;

@@ -2,7 +2,7 @@
  * DTO class for IPN (Instant Payment Notification) response
  * Used to send status back to VNPAY after processing IPN
  */
-package Project_ITSS.vnpay.common.dto;
+package com.aims.vnpay.common.dto;
 
 /**
  * Response object for IPN processing

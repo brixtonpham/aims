@@ -1,7 +1,7 @@
-package Project_ITSS.vnpay.common.service;
+package com.aims.vnpay.common.service;
 
-import Project_ITSS.vnpay.common.entity.TransactionInfo;
-import Project_ITSS.vnpay.common.repository.TransactionRepository;
+import com.aims.vnpay.common.entity.TransactionInfo;
+import com.aims.vnpay.common.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;

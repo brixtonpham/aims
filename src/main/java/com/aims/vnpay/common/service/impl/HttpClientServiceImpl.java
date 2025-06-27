@@ -1,6 +1,6 @@
-package Project_ITSS.vnpay.common.service.impl;
+package com.aims.vnpay.common.service.impl;
 
-import Project_ITSS.vnpay.common.service.HttpClientService;
+import com.aims.vnpay.common.service.HttpClientService;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
