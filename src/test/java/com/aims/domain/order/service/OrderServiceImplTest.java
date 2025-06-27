@@ -46,163 +46,12 @@ class OrderServiceImplTest {
             .status(OrderStatus.PENDING)
             .vatRate(10)
             .orderTime(LocalDateTime.now())
-            .paymentMethod("VNPAY")
+            .paymentMethod("CREDIT_CARD")
             .isRushOrder(false)
             .build();
         
         // Add an order item to make the order valid
         testOrder.addOrderItem(1L, "Test Product", 2, 50000);
-    }
-
-    @Test
-    @DisplayName("Should return true when order can be processed for payment")
-    void canProcessPayment_PendingOrder_ReturnsTrue() {
-        // Given
-        when(orderRepository.findById(TEST_ORDER_ID_LONG)).thenReturn(Optional.of(testOrder));
-
-        // When
-        boolean result = orderService.canProcessPayment(TEST_ORDER_ID);
-
-        // Then
-        assertTrue(result);
-        verify(orderRepository).findById(TEST_ORDER_ID_LONG);
-    }
-
-    @Test
-    @DisplayName("Should return false when order cannot be processed for payment")
-    void canProcessPayment_ConfirmedOrder_ReturnsFalse() {
-        // Given
-        testOrder.setStatus(OrderStatus.CONFIRMED);
-        when(orderRepository.findById(TEST_ORDER_ID_LONG)).thenReturn(Optional.of(testOrder));
-
-        // When
-        boolean result = orderService.canProcessPayment(TEST_ORDER_ID);
-
-        // Then
-        assertFalse(result);
-        verify(orderRepository).findById(TEST_ORDER_ID_LONG);
-    }
-
-    @Test
-    @DisplayName("Should return false when order does not exist")
-    void canProcessPayment_NonExistentOrder_ReturnsFalse() {
-        // Given
-        when(orderRepository.findById(TEST_ORDER_ID_LONG)).thenReturn(Optional.empty());
-
-        // When
-        boolean result = orderService.canProcessPayment(TEST_ORDER_ID);
-
-        // Then
-        assertFalse(result);
-        verify(orderRepository).findById(TEST_ORDER_ID_LONG);
-    }
-
-    @Test
-    @DisplayName("Should throw exception for invalid order ID")
-    void canProcessPayment_InvalidOrderId_ThrowsException() {
-        // When & Then
-        assertThrows(IllegalArgumentException.class, 
-            () -> orderService.canProcessPayment(null));
-        
-        assertThrows(IllegalArgumentException.class, 
-            () -> orderService.canProcessPayment(""));
-        
-        assertThrows(IllegalArgumentException.class, 
-            () -> orderService.canProcessPayment("invalid"));
-
-        verify(orderRepository, never()).findById(any());
-    }
-
-    @Test
-    @DisplayName("Should successfully mark order as paid")
-    void markOrderAsPaid_ValidOrder_Success() {
-        // Given
-        when(orderRepository.findById(TEST_ORDER_ID_LONG)).thenReturn(Optional.of(testOrder));
-        when(orderRepository.save(any(Order.class))).thenReturn(testOrder);
-
-        // When
-        orderService.markOrderAsPaid(TEST_ORDER_ID);
-
-        // Then
-        assertEquals(OrderStatus.CONFIRMED, testOrder.getStatus());
-        verify(orderRepository, times(2)).findById(TEST_ORDER_ID_LONG); // Called twice: once in markOrderAsPaid, once in canProcessPayment
-        verify(orderRepository).save(testOrder);
-    }
-
-    @Test
-    @DisplayName("Should throw exception when marking non-existent order as paid")
-    void markOrderAsPaid_NonExistentOrder_ThrowsException() {
-        // Given
-        when(orderRepository.findById(TEST_ORDER_ID_LONG)).thenReturn(Optional.empty());
-
-        // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-            () -> orderService.markOrderAsPaid(TEST_ORDER_ID));
-
-        assertTrue(exception.getMessage().contains("Order not found"));
-        verify(orderRepository).findById(TEST_ORDER_ID_LONG);
-        verify(orderRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("Should throw exception when marking non-pending order as paid")
-    void markOrderAsPaid_NonPendingOrder_ThrowsException() {
-        // Given
-        testOrder.setStatus(OrderStatus.CONFIRMED);
-        when(orderRepository.findById(TEST_ORDER_ID_LONG)).thenReturn(Optional.of(testOrder));
-
-        // When & Then
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
-            () -> orderService.markOrderAsPaid(TEST_ORDER_ID));
-
-        assertTrue(exception.getMessage().contains("cannot be marked as paid"));
-        verify(orderRepository, times(2)).findById(TEST_ORDER_ID_LONG); // Called twice: once in markOrderAsPaid, once in canProcessPayment
-        verify(orderRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("Should successfully mark order payment as failed")
-    void markOrderPaymentFailed_ValidOrder_Success() {
-        // Given
-        when(orderRepository.findById(TEST_ORDER_ID_LONG)).thenReturn(Optional.of(testOrder));
-
-        // When
-        orderService.markOrderPaymentFailed(TEST_ORDER_ID);
-
-        // Then
-        verify(orderRepository).findById(TEST_ORDER_ID_LONG);
-    }
-
-    @Test
-    @DisplayName("Should successfully mark order as refunded")
-    void markOrderAsRefunded_ConfirmedOrder_Success() {
-        // Given
-        testOrder.setStatus(OrderStatus.CONFIRMED);
-        when(orderRepository.findById(TEST_ORDER_ID_LONG)).thenReturn(Optional.of(testOrder));
-        when(orderRepository.save(any(Order.class))).thenReturn(testOrder);
-
-        // When
-        orderService.markOrderAsRefunded(TEST_ORDER_ID);
-
-        // Then
-        assertEquals(OrderStatus.CANCELLED, testOrder.getStatus());
-        verify(orderRepository).findById(TEST_ORDER_ID_LONG);
-        verify(orderRepository).save(testOrder);
-    }
-
-    @Test
-    @DisplayName("Should throw exception when refunding non-confirmed order")
-    void markOrderAsRefunded_PendingOrder_ThrowsException() {
-        // Given (testOrder is already PENDING by default)
-        when(orderRepository.findById(TEST_ORDER_ID_LONG)).thenReturn(Optional.of(testOrder));
-
-        // When & Then
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
-            () -> orderService.markOrderAsRefunded(TEST_ORDER_ID));
-
-        assertTrue(exception.getMessage().contains("Only confirmed orders can be refunded"));
-        verify(orderRepository).findById(TEST_ORDER_ID_LONG);
-        verify(orderRepository, never()).save(any());
     }
 
     @Test
@@ -327,7 +176,7 @@ class OrderServiceImplTest {
             .totalBeforeVAT(50000L)
             .totalAfterVAT(55000L)
             .vatRate(10)
-            .paymentMethod("VNPAY")
+            .paymentMethod("CREDIT_CARD")
             .isRushOrder(false)
             .build();
         

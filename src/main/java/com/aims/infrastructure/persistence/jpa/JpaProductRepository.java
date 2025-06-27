@@ -15,6 +15,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -65,9 +66,12 @@ public class JpaProductRepository implements ProductRepository {
         }, keyHolder);
 
         // Get the generated ID
-        Number generatedId = keyHolder.getKey();
-        if (generatedId != null) {
-            product.setProductId(generatedId.longValue());
+        Map<String, Object> keys = keyHolder.getKeys();
+        if (keys != null && !keys.isEmpty()) {
+            Object productId = keys.get("PRODUCT_ID");
+            if (productId != null) {
+                product.setProductId(((Number) productId).longValue());
+            }
         }
         
         return product;

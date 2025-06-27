@@ -42,21 +42,6 @@ public class TestConfig {
     }
 
     /**
-     * Mock VNPay properties for testing
-     */
-    @Bean
-    @Primary
-    public PaymentConfig.VNPayProperties testVNPayProperties() {
-        PaymentConfig.VNPayProperties props = new PaymentConfig.VNPayProperties();
-        props.setPayUrl("http://localhost:8080/mock/vnpay");
-        props.setReturnUrl("http://localhost:8080/api/payment/vnpay/return");
-        props.setTmnCode("TEST_TMN_CODE");
-        props.setSecretKey("TEST_SECRET_KEY");
-        props.setApiUrl("http://localhost:8080/mock/vnpay/api");
-        return props;
-    }
-
-    /**
      * Mock email properties for testing
      */
     @Bean
