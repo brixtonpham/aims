@@ -240,6 +240,27 @@ CREATE INDEX idx_payment_transactions_gateway_id ON payment_transactions(gateway
 CREATE INDEX idx_payment_transactions_created_at ON payment_transactions(created_at);
 CREATE INDEX idx_payment_transactions_payment_method ON payment_transactions(payment_method);
 
+-- =====================================================
+-- VNPay Integration Tables
+-- =====================================================
+
+-- VNPay transaction information table
+CREATE TABLE vnpay_transactions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id VARCHAR(255) NOT NULL,
+    transaction_no VARCHAR(255),
+    amount BIGINT,
+    bank_code VARCHAR(50),
+    response_code VARCHAR(10),
+    transaction_status VARCHAR(50),
+    pay_date VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- VNPay transaction indexes
+CREATE INDEX idx_vnpay_transactions_order_id ON vnpay_transactions(order_id);
+CREATE INDEX idx_vnpay_transactions_created_at ON vnpay_transactions(created_at);
+
 -- User indexes
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_username ON users(username);

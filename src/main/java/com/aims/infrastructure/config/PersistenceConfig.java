@@ -24,7 +24,10 @@ import java.util.Properties;
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-    basePackages = "com.aims.infrastructure.persistence.jpa",
+    basePackages = {
+        "com.aims.infrastructure.persistence.jpa",
+        "com.aims.vnpay.common.repository"
+    },
     transactionManagerRef = "jpaTransactionManager"
 )
 @EntityScan(basePackages = {
@@ -32,7 +35,8 @@ import java.util.Properties;
     "com.aims.domain.cart.entity", 
     "com.aims.domain.order.entity",
     "com.aims.domain.user.entity",
-    "com.aims.domain.payment.entity"
+    "com.aims.domain.payment.entity",
+    "com.aims.vnpay.common.entity"
 })
 @EnableJpaAuditing
 public class PersistenceConfig {
@@ -75,7 +79,8 @@ public class PersistenceConfig {
             "com.aims.domain.cart.entity",
             "com.aims.domain.order.entity", 
             "com.aims.domain.user.entity",
-            "com.aims.domain.payment.entity"
+            "com.aims.domain.payment.entity",
+            "com.aims.vnpay.common.entity"
         );
 
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();

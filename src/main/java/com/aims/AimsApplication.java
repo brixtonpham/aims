@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
@@ -14,11 +15,13 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @SpringBootApplication
 @EnableConfigurationProperties
 @EnableJpaRepositories(basePackages = {
-    "com.aims.infrastructure.persistence"
+    "com.aims.infrastructure.persistence",
+    "com.aims.vnpay.common.repository"
 })
 @EntityScan(basePackages = {
     "com.aims.domain",
-    "com.aims.infrastructure.persistence"
+    "com.aims.infrastructure.persistence", 
+    "com.aims.vnpay.common.entity"
 })
 @ComponentScan(basePackages = {
     "com.aims.presentation",
@@ -27,7 +30,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
     "com.aims.infrastructure",
     "com.aims.shared",
     "com.aims.vnpay"
-})
+}, excludeFilters = @ComponentScan.Filter(
+    type = FilterType.ASSIGNABLE_TYPE,
+    classes = com.aims.vnpay.common.service.VNPayServiceImpl.class
+))
 public class AimsApplication {
     
     public static void main(String[] args) {

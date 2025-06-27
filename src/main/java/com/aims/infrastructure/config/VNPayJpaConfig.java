@@ -1,16 +1,21 @@
 package com.aims.infrastructure.config;
 
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
  * JPA Configuration for VNPay integration
- * Ensures proper entity and repository scanning for VNPay components
+ * 
+ * Note: Entity and repository scanning is now handled in the main application class
+ * and PersistenceConfig to avoid bean definition conflicts. This class is kept for 
+ * potential future VNPay-specific JPA configurations.
+ * 
+ * VNPay entities (com.aims.vnpay.common.entity) and repositories 
+ * (com.aims.vnpay.common.repository) are automatically scanned by:
+ * - AimsApplication.java: @EnableJpaRepositories and @EntityScan annotations
+ * - PersistenceConfig.java: Entity manager factory configuration
  */
 @Configuration
-@EntityScan(basePackages = {"com.aims.vnpay.common.entity"})
-@EnableJpaRepositories(basePackages = {"com.aims.vnpay.common.repository"})
 public class VNPayJpaConfig {
-    // Configuration class to ensure VNPay entities and repositories are properly scanned
+    // VNPay entities and repositories are now scanned by the main application
+    // This avoids bean definition conflicts while keeping the config structure clean
 }
