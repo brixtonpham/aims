@@ -118,18 +118,19 @@ public class CartApplicationService {
             // Step 1: Validate command
             validateUpdateCartCommand(command);
 
-            // Step 2: Get cart
+            // Step 2: Get cart by cart item ID
             Cart cart = getCartByItemId(command.getCartItemId());
 
-            // Step 3: Validate product availability for new quantity
+            // Step 3: Validate that cart item exists in the cart
             CartItem cartItem = cart.getCartItems().stream()
                 .filter(item -> item.getCartItemId().equals(command.getCartItemId()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Cart item not found in cart: " + command.getCartItemId()));
 
+            // Step 4: Validate product availability for new quantity
             validateProductAvailability(cartItem.getProduct().getProductId(), command.getQuantity());
 
-            // Step 4: Delegate to domain service
+            // Step 5: Delegate to domain service
             Cart updatedCart = cartService.updateCartItemQuantity(cart, command.getCartItemId(), command.getQuantity());
 
             logger.info("Cart item updated successfully: {}", command.getCartItemId());
@@ -176,6 +177,43 @@ public class CartApplicationService {
         } catch (Exception e) {
             logger.error("Failed to clear cart for customer {}: {}", customerId, e.getMessage(), e);
             throw new CartApplicationException("Failed to clear cart: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Remove cart item workflow
+     */
+    public Cart removeCartItem(Long cartItemId) {
+        try {
+            logger.info("Starting remove cart item workflow for item: {}", cartItemId);
+
+            // Step 1: Validate cart item ID
+            if (cartItemId == null || cartItemId <= 0) {
+                throw new IllegalArgumentException("Valid cart item ID is required");
+            }
+
+            // Step 2: Get cart by cart item ID
+            Cart cart = getCartByItemId(cartItemId);
+
+            // Step 3: Validate that cart item exists in the cart
+            boolean itemExists = cart.getCartItems().stream()
+                .anyMatch(item -> item.getCartItemId().equals(cartItemId));
+            if (!itemExists) {
+                throw new IllegalArgumentException("Cart item not found in cart: " + cartItemId);
+            }
+
+            // Step 4: Delegate to domain service
+            Cart updatedCart = cartService.removeItemFromCart(cart, cartItemId);
+
+            logger.info("Cart item removed successfully: {}", cartItemId);
+            return updatedCart;
+
+        } catch (IllegalArgumentException e) {
+            logger.error("Validation failed for remove cart item: {}", e.getMessage());
+            throw new CartApplicationException("Validation failed: " + e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Failed to remove cart item: {}", e.getMessage(), e);
+            throw new CartApplicationException("Failed to remove cart item: " + e.getMessage(), e);
         }
     }
 
@@ -233,8 +271,13 @@ public class CartApplicationService {
     }
 
     private Cart getCartByItemId(Long cartItemId) {
-        // This would typically be handled by the repository
-        // For now, we'll throw an exception as this needs implementation
-        throw new UnsupportedOperationException("getCartByItemId not implemented yet - need to implement cart item to cart lookup");
+        logger.debug("Looking up cart for cart item: {}", cartItemId);
+        
+        Optional<Cart> cartOpt = cartRepository.findByCartItemId(cartItemId);
+        if (cartOpt.isEmpty()) {
+            throw new IllegalArgumentException("Cart not found for cart item: " + cartItemId);
+        }
+        
+        return cartOpt.get();
     }
 }

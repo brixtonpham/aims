@@ -164,10 +164,20 @@ public class CartController {
     @DeleteMapping("/items/{itemId}")
     public ResponseEntity<ApiResponse<Void>> removeCartItem(@PathVariable("itemId") Long itemId) {
         try {
-            // For now, return method not implemented
-            return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body(ApiResponse.error("Remove cart item not implemented", "NOT_IMPLEMENTED"));
+            // Validate cart item ID
+            if (itemId == null || itemId <= 0) {
+                return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Invalid cart item ID", VALIDATION_ERROR));
+            }
 
+            // Delegate to application service
+            cartApplicationService.removeCartItem(itemId);
+
+            return ResponseEntity.ok(ApiResponse.success("Cart item removed successfully", null));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error(e.getMessage(), VALIDATION_ERROR));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("Failed to remove cart item", INTERNAL_ERROR));

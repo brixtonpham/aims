@@ -76,4 +76,11 @@ public interface CartRepository {
      * @return number of deleted carts
      */
     int deleteInactiveCartsOlderThan(int days);
+    
+    /**
+     * Find cart that contains the specified cart item
+     * @param cartItemId the cart item ID
+     * @return Optional containing the cart if found
+     */
+    Optional<Cart> findByCartItemId(Long cartItemId);
 }

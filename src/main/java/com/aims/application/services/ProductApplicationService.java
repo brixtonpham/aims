@@ -222,6 +222,45 @@ public class ProductApplicationService {
         }
     }
     
+    /**
+     * Delete Product workflow orchestration
+     * Implements the Delete Product sequence with business validation
+     */
+    public void deleteProduct(Long productId) {
+        logger.debug("Starting delete product workflow for ID: {}", productId);
+        
+        try {
+            // Step 1: Validate input
+            if (productId == null || productId <= 0) {
+                throw new IllegalArgumentException("Invalid product ID: " + productId);
+            }
+            
+            // Step 2: Check if product exists (orchestration concern)
+            Optional<Product> product = productService.getProductById(productId);
+            if (product.isEmpty()) {
+                throw new IllegalArgumentException("Product not found with ID: " + productId);
+            }
+            
+            // Step 3: Additional business validation (orchestration concern)
+            validateProductCanBeDeleted(product.get());
+            
+            // Step 4: Delegate to domain service
+            productService.deleteProduct(productId);
+            
+            // Step 5: Log deletion activity (orchestration concern)
+            logProductDeletion(product.get());
+            
+            logger.debug("Product deletion workflow completed for ID: {}", productId);
+            
+        } catch (IllegalArgumentException e) {
+            logger.warn("Product deletion failed - validation error: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Failed to delete product: {}", e.getMessage(), e);
+            throw new ProductApplicationException("Failed to delete product: " + e.getMessage(), e);
+        }
+    }
+    
     // Private orchestration methods
     
     private void validateAddProductCommand(AddProductCommand command) {
@@ -358,5 +397,19 @@ public class ProductApplicationService {
     
     private void logSearchActivity(SearchProductQuery query, int resultCount) {
         logger.debug("Search performed - Criteria: {}, Results: {}", query, resultCount);
+    }
+    
+    private void logProductDeletion(Product product) {
+        logger.info("Product deleted - ID: {}, Title: {}, Type: {}", 
+                   product.getProductId(), product.getTitle(), product.getType());
+    }
+    
+    private void validateProductCanBeDeleted(Product product) {
+        // Additional application-level validation for deletion
+        // For example: check if product is part of active orders, etc.
+        logger.debug("Validating product can be deleted: ID={}, Title={}", 
+                    product.getProductId(), product.getTitle());
+        
+        // Future: Add validation for active orders, cart items, etc.
     }
 }

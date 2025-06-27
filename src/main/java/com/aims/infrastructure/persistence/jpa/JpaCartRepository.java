@@ -248,6 +248,29 @@ public class JpaCartRepository implements CartRepository {
         cart.getCartItems().addAll(cartItems);
     }
 
+    @Override
+    public Optional<Cart> findByCartItemId(Long cartItemId) {
+        try {
+            String sql = """
+                SELECT c.cart_id, c.customer_id, c.created_at, c.updated_at
+                FROM carts c
+                INNER JOIN cart_items ci ON c.cart_id = ci.cart_id
+                WHERE ci.cart_item_id = ?
+                """;
+            
+            Cart cart = jdbcTemplate.queryForObject(sql, 
+                new BeanPropertyRowMapper<>(Cart.class), cartItemId);
+            
+            if (cart != null) {
+                loadCartItems(cart);
+            }
+            
+            return Optional.of(cart);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
     // Custom exception class
     public static class CartNotFoundException extends RuntimeException {
         public CartNotFoundException(String message) {

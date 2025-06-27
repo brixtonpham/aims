@@ -33,7 +33,6 @@ public class ProductController {
     private static final String VALIDATION_ERROR = "VALIDATION_ERROR";
     private static final String INTERNAL_ERROR = "INTERNAL_ERROR";
     private static final String NOT_FOUND = "NOT_FOUND";
-    private static final String NOT_IMPLEMENTED = "NOT_IMPLEMENTED";
 
     private final ProductApplicationService productApplicationService;
 
@@ -209,11 +208,14 @@ public class ProductController {
                     .body(ApiResponse.error("Invalid product ID", VALIDATION_ERROR));
             }
             
-            // For now, return method not implemented
-            // This can be implemented when delete functionality is added to the application service
-            return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body(ApiResponse.error("Delete functionality not implemented", NOT_IMPLEMENTED));
+            // Delegate to application service
+            productApplicationService.deleteProduct(id);
+            
+            return ResponseEntity.ok(ApiResponse.success("Product deleted successfully", null));
                 
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error(e.getMessage(), VALIDATION_ERROR));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("Failed to delete product", INTERNAL_ERROR));
