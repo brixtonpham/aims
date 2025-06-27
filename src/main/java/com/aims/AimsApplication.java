@@ -6,18 +6,16 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
  * Main application class for AIMS (Advanced Inventory Management System)
  * Following Clean Architecture principles
+ * 
+ * Note: JPA repository scanning is configured in PersistenceConfig.java
+ * to avoid bean definition conflicts and maintain separation of concerns.
  */
 @SpringBootApplication
 @EnableConfigurationProperties
-@EnableJpaRepositories(basePackages = {
-    "com.aims.infrastructure.persistence",
-    "com.aims.vnpay.common.repository"
-})
 @EntityScan(basePackages = {
     "com.aims.domain",
     "com.aims.infrastructure.persistence", 

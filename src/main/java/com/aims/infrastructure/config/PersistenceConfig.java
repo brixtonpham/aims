@@ -20,11 +20,15 @@ import java.util.Properties;
 /**
  * Persistence configuration for JPA and database settings
  * Configures entity scanning, repository interfaces, and transaction management
+ * 
+ * This is the single source of truth for repository scanning configuration,
+ * including both AIMS and VNPay repositories to avoid bean definition conflicts.
  */
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
     basePackages = {
+        "com.aims.infrastructure.persistence",
         "com.aims.infrastructure.persistence.jpa",
         "com.aims.vnpay.common.repository"
     },
